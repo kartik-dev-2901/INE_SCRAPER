@@ -1,0 +1,4 @@
+function TrackedProducts({ products, onSelect }) {
+    return <section className="tracked-section"><div className="section-heading"><div><p className="eyebrow">YOUR WATCHLIST</p><h2>Tracked products</h2></div><span className="count-badge">{products.length}</span></div>{products.length === 0 ? <div className="empty-state"><span>◎</span><h3>Your watchlist is empty</h3><p>Search above to begin monitoring a product.</p></div> : <div className="product-grid">{products.map(product => <button className="product-card" key={product.id} onClick={() => onSelect(product)}><span className="product-code">{product.sku || "PRODUCT"}</span><h3>{product.product_name}</h3><p title={product.product_url}>{product.product_url}</p><span className="card-divider" /><span className="card-action"><span className="tracking-state"><i />Tracking active</span><b>View details →</b></span></button>)}</div>}</section>;
+}
+export default TrackedProducts;
