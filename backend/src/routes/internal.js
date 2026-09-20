@@ -3,32 +3,41 @@ const { runScraper } = require("../scraper/runScraper");
 
 const router = express.Router();
 
+let scraperRunning = false;
+
 router.post("/scrape", async (req, res) => {
-    try {
-        const secret = req.headers["x-scraper-secret"];
+    const secret = req.headers["x-scraper-secret"];
 
-        if (!secret || secret !== process.env.SCRAPER_SECRET) {
-            return res.status(401).json({
-                error: "Unauthorized"
-            });
-        }
-
-        // Start the scraper and wait for it to finish.
-        await runScraper();
-
-        res.json({
-            success: true,
-            message: "Scraper run completed"
-        });
-
-    } catch (error) {
-        console.error("Scheduled scraper failed:", error);
-
-        res.status(500).json({
-            success: false,
-            error: "Scraper run failed"
+    if (!secret || secret !== process.env.SCRAPER_SECRET) {
+        return res.status(401).json({
+            error: "Unauthorized"
         });
     }
+
+    if (scraperRunning) {
+        return res.status(409).json({
+            success: false,
+            message: "Scraper is already running"
+        });
+    }
+
+    scraperRunning = true;
+
+    runScraper()
+        .then(() => {
+            console.log("Background scraper completed");
+        })
+        .catch(error => {
+            console.error("Background scraper failed:", error);
+        })
+        .finally(() => {
+            scraperRunning = false;
+        });
+
+    return res.status(202).json({
+        success: true,
+        message: "Scraper started"
+    });
 });
 
 module.exports = router;
